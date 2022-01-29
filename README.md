@@ -7,7 +7,7 @@ Le cas 2 correspond à la configuration du projet.
 
 Le cas 3 correspond à une implémentation d'une condition au limite de Poiseuille en entrée.
 
-On repart ensuite du cas 3 puis on fait une étude de convergence en maillage pour un Re donné.
+On repart ensuite du cas 2b puis on fait une étude de convergence en maillage pour un Re donné.
 
 Ensuite on ajoute une équation de transport pour la température.
 
