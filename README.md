@@ -1,5 +1,5 @@
 # Projet_OpenFoam_M2
-Repository contenant les dossiers system, constant et 0 de chaque cas étudié du projet de M2 OpenFoam : Refroidissement d'une plaque plane par jet d'air pulsé.
+Repository contenant les dossiers system, constant et 0 de chaque cas étudié du projet de M2 OpenFoam : Refroidissement d'une plaque plane par un jet d'air.
 
 Le cas 1 correspond à une variante de la cavité entrainée (1er tuto OpenFoam)
 
