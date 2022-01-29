@@ -1,0 +1,156 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2012                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      blockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+// Paramètres
+    L 0.1;               // Largeur de la plaque
+    H 0.4;                // Distance injection/plaque
+    Hi 0.01;                // Longueur d'injection
+    D 0.01;			           // Diametre de l'injection
+    tan_theta 0;             // Angle d'injection
+    dx 0.001;             // Taille d'une maille
+
+    Ltot #calc "$H + $Hi";
+    Lmg #calc "($L / 2) - ($D / 2)";
+    Lmd #calc "($L / 2) + ($D / 2)";
+    Hmg #calc "$Lmg * $tan_theta";
+    Hmd #calc "$Lmd * $tan_theta";
+    Hnd #calc "$L * $tan_theta";
+    nbm_b1x #calc "$D / $dx";
+    nbm_b1y #calc "$Hi / $dx";
+    nbm_b2x #calc "$Lmg / $dx";
+    nbm_b2y #calc "$H / $dx";
+    nbm_b3x #calc "$D / $dx";
+    nbm_b3y #calc "$H / $dx";
+    nbm_b4x #calc "($L - $Lmd) / $dx";
+    nbm_b4y #calc "$H / $dx";
+
+
+scale   1;
+
+vertices
+(
+  ($Lmg $H 0)         // 0
+  ($Lmd $H 0)         // 1
+  ($Lmd $Ltot 0)      // 2
+  ($Lmg $Ltot 0)      // 3
+  ($Lmg $H 0.1)         // 4
+  ($Lmd $H 0.1)         // 5
+  ($Lmd $Ltot 0.1)      // 6
+  ($Lmg $Ltot 0.1)      // 7
+  (0 0 0)             // 8
+  ($Lmg $Hmg 0)       // 9
+  (0 $H 0)            // 10
+  (0 0 0.1)             // 11
+  ($Lmg $Hmg 0.1)       // 12
+  (0 $H 0.1)            // 13
+  ($Lmd $Hmd 0)       // 14
+  ($Lmd $Hmd 0.1)       // 15
+  ($L $Hnd 0)         // 16
+  ($L $H 0)           // 17
+  ($L $Hnd 0.1)         // 18
+  ($L $H 0.1)           // 19
+);
+
+blocks
+(
+    // Injection
+    hex (0 1 2 3 4 5 6 7) ($nbm_b1x $nbm_b1y 1) simpleGrading (1 1 1)
+
+    // Block gauche
+    hex (8 9 0 10 11 12 4 13) ($nbm_b2x $nbm_b2y 1) simpleGrading (1 1 0.1)
+
+    // Block central
+    hex (9 14 1 0 12 15 5 4) ($nbm_b3x $nbm_b3y 1) simpleGrading (1 1 1)
+
+    // Block Droit
+    hex (14 16 17 1 15 18 19 5) ($nbm_b4x $nbm_b4y 1) simpleGrading (1 1 10)
+);
+
+edges
+(
+);
+
+boundary
+(
+    up
+    {
+        type wall;
+        faces
+        (
+            (3 7 6 2)
+        );
+    }
+    bottom
+    {
+        type patch;
+        faces
+        (
+            (8 11 12 9)
+            (9 12 15 14)
+            (14 15 18 16)
+        );
+    }
+    right
+    {
+        type patch;
+        faces
+        (
+            (16 18 19 17)
+        );
+    }
+    left
+    {
+        type patch;
+        faces
+        (
+            (10 13 11 8)
+        );
+    }
+    fixedWalls
+    {
+        type wall;
+        faces
+        (
+            (3 7 4 0)
+            (0 4 13 10)
+            (17 19 5 1)
+            (1 5 6 2)
+        );
+    }
+    frontAndBack
+    {
+        type empty;
+        faces
+        (
+          // Front
+            (0 1 2 3)
+            (8 9 0 10)
+            (9 14 1 0)
+            (14 16 17 1)
+          // Back
+            (4 5 6 7)
+            (11 12 4 13)
+            (12 15 5 4)
+            (15 18 19 5)
+        );
+    }
+);
+
+mergePatchPairs
+(
+);
+
+// ************************************************************************* //
