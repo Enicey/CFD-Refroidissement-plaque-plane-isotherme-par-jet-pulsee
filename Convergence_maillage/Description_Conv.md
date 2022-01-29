@@ -1,4 +1,5 @@
 Le rapport d'aspect R = dx(n) / dx(1) et le nombre de maille a été calculé (pour les blocks latéraux) pour une taille de maille dx donnée.
+Résultats comparés pour le régime établie.
 cf. le code Matlab Smoothness.m
 
 Cas 1 :
