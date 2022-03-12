@@ -1,0 +1,80 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2012                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volVectorField;
+    object      U;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 1 -1 0 0 0 0];
+
+internalField   uniform (0 0 0);
+
+boundaryField
+{
+    up
+    {
+        type            codedFixedValue;
+        value           $internalField;
+
+        // Name of generated boundary condition
+        redirectType    inletPoiseuilleProfil;
+        code
+        #{
+            const fvPatch& boundaryPatch = patch(); // generic
+          	const vectorField& Cf = boundaryPatch.Cf(); // generic
+          	vectorField& field = *this; //generic
+
+          	const scalar Rpipe = 0.005;
+          	const scalar Umax = 2.1;
+
+            forAll(Cf,faceI) //loop over all the patch faces
+          	{
+          	     const scalar x = Cf[faceI].x();
+
+                 field[faceI] = vector(0,-Umax*(1-pow(sqrt(x*x)/Rpipe,2)),0);
+                 //cout << "x = " << x << "\n" << endl;
+                 //cout << "x = " << abs(x) << "\n" << endl;
+                 //cout << "x = " << sqrt(x*x) << "\n" << endl;
+          	}
+
+        #};
+
+
+    }
+
+    fixedWalls
+    {
+        type            noSlip;
+    }
+
+    right
+    {
+        type            zeroGradient;
+    }
+
+    left
+    {
+        type            zeroGradient;
+    }
+
+    bottom
+    {
+        type            noSlip;
+    }
+
+    frontAndBack
+    {
+        type            empty;
+    }
+}
+
+// ************************************************************************* //
