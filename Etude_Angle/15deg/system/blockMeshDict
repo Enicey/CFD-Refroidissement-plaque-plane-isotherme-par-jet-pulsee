@@ -1,0 +1,215 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2012                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      blockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+// Paramètres
+    L 1;                // Largeur de la plaque
+    H 0.3;              // Distance injection/plaque
+    Hi 0.01;            // Longueur d'injection
+    D 0.01;			    // Diametre de l'injection
+    tan_theta 0.2679;        // Angle d'injection
+    N_temp 26;          // Nombre de maille zone tampon
+    r_temp 1.1;         // Rapport d'aspect entre deux mailles adjacentes
+    ep_cl 0.002;        // Epaisseur estimé de la CL
+    dx_cl 0.0002;       // Taille d'une maille dans la CL
+
+    L1 #eval {$D / 2};
+    L2 #eval {$L / 2};
+    L3 #eval {- $D / 2};
+    L4 #eval {- $L / 2};
+    dH1 #eval {$L1 * $tan_theta};
+    dH2 #eval {$L2 * $tan_theta};
+    H1 #eval {-$H + $dH1};
+    H2 #eval {-$H + $dH2};
+    H3 #eval {-$H - $dH1};
+    H4 #eval {-$H - $dH2};
+    R_temp #eval {pow($r_temp, $N_temp-1)};
+    L_temp #eval {$dx_cl * (pow($r_temp, $N_temp) - 1) / ($r_temp - 1)};
+    rapp_cl #eval {$ep_cl / $H};
+    rapp_temp #eval {$L_temp / $H};
+    rapp_reste #eval {1 - $rapp_cl - $rapp_temp};
+    nb_maille_y #eval {round(($ep_cl / $dx_cl) + $N_temp + (($H - $L_temp - $ep_cl) / ($dx_cl * $R_temp)))};
+    rapp_cl_m #eval {($ep_cl / $dx_cl) / $nb_maille_y};
+    rapp_temp_m #eval {$N_temp / $nb_maille_y};
+    rapp_reste_m #eval {1 - $rapp_cl_m - $rapp_temp_m};
+
+scale   1;
+
+vertices
+(
+  ($L3 0 0)        // 0
+  ($L1 0 0)        // 1
+  ($L1 $Hi 0)      // 2
+  ($L3 $Hi 0)      // 3
+  ($L3 0 0.1)      // 4
+  ($L1 0 0.1)      // 5
+  ($L1 $Hi 0.1)    // 6
+  ($L3 $Hi 0.1)    // 7
+
+  ($L4 $H4 0)      // 8
+  ($L3 $H3 0)      // 9
+  ($L4 0 0)        // 10
+  ($L4 $H4 0.1)    // 11
+  ($L3 $H3 0.1)    // 12
+  ($L4 0 0.1)      // 13
+
+  ($L1 $H1 0)      // 14
+  ($L2 $H2 0)      // 15
+  ($L2 0 0)        // 16
+  ($L1 $H1 0.1)    // 17
+  ($L2 $H2 0.1)    // 18
+  ($L2 0 0.1)      // 19
+);
+
+blocks
+(
+    // Injection
+    hex (0 1 2 3 4 5 6 7) (10 10 1) simpleGrading (1 1 1)
+
+    // Block gauche
+    hex (8 9 0 10 11 12 4 13) (41 $nb_maille_y 1)
+    simpleGrading
+    (
+        // Direction x
+        (
+            (1 1 0.0222)
+        )
+
+        // Direction y
+        (
+            ($rapp_cl $rapp_cl_m 1)
+            ($rapp_temp $rapp_temp_m $R_temp)
+            ($rapp_reste $rapp_reste_m 1)
+        )
+
+        // Direction z
+        1
+    )
+
+    // Block central
+    hex (9 14 1 0 12 17 5 4) (10 $nb_maille_y 1)
+    simpleGrading
+    (
+        // Direction x
+        1
+
+        // Direction y
+        (
+            ($rapp_cl $rapp_cl_m 1)
+            ($rapp_temp $rapp_temp_m $R_temp)
+            ($rapp_reste $rapp_reste_m 1)
+        )
+
+        // Direction z
+        1
+    )
+
+    // Block Droit
+    hex (14 15 16 1 17 18 19 5) (41 $nb_maille_y 1)
+    simpleGrading
+    (
+        // Direction x
+        (
+            (1 1 45)
+        )
+
+        // Direction y
+        (
+            ($rapp_cl $rapp_cl_m 1)
+            ($rapp_temp $rapp_temp_m $R_temp)
+            ($rapp_reste $rapp_reste_m 1)
+        )
+
+        // Direction z
+        1
+    )
+);
+
+
+edges
+(
+);
+
+boundary
+(
+    up
+    {
+        type wall;
+        faces
+        (
+            (3 7 6 2)
+        );
+    }
+    bottom
+    {
+        type patch;
+        faces
+        (
+            (8 11 12 9)
+            (9 12 17 14)
+            (14 17 18 15)
+        );
+    }
+    right
+    {
+        type patch;
+        faces
+        (
+            (16 19 18 15)
+        );
+    }
+    left
+    {
+        type patch;
+        faces
+        (
+            (10 13 11 8)
+        );
+    }
+    fixedWalls
+    {
+        type wall;
+        faces
+        (
+            (3 7 4 0)
+            (0 4 13 10)
+            (2 6 5 1)
+            (1 5 19 16)
+        );
+    }
+    frontAndBack
+    {
+        type empty;
+        faces
+        (
+          // Front
+            (0 1 2 3)
+            (8 9 0 10)
+            (9 14 1 0)
+            (14 15 16 1)
+          // Back
+            (4 5 6 7)
+            (11 12 4 13)
+            (12 17 5 4)
+            (17 18 19 5)
+        );
+    }
+);
+
+mergePatchPairs
+(
+);
+
+// ************************************************************************* //

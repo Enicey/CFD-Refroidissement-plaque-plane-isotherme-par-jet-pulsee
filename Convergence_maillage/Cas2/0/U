@@ -22,8 +22,30 @@ boundaryField
 {
     up
     {
-        type            fixedValue;
-        value           uniform (0 -0.1 0);
+        type            codedFixedValue;
+        value           $internalField;
+
+        // Name of generated boundary condition
+        redirectType    inletPoiseuilleProfil;
+        code
+        #{
+            const fvPatch& boundaryPatch = patch(); // generic
+          	const vectorField& Cf = boundaryPatch.Cf(); // generic
+          	vectorField& field = *this; //generic
+
+          	const scalar Rpipe = 0.005;
+          	const scalar Umax = 0.15;
+
+            forAll(Cf,faceI) //loop over all the patch faces
+          	{
+          	     const scalar x = Cf[faceI].x();
+
+                 field[faceI] = vector(0,-Umax*(1-pow(sqrt(x*x)/Rpipe,2)),0);
+          	}
+
+        #};
+
+
     }
 
     fixedWalls
