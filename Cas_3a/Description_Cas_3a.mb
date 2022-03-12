@@ -1,3 +1,3 @@
 Implémentation d'un profil de poiseuille en CL d'injection
 
-Le profil dépasse Umax (a voir la définition de notre loi, voir si condition de pression necessaire).
+Le profil dépasse Umax (voir la définition de notre loi et voir si une condition de pression est nécessaire).
